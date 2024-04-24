@@ -1,28 +1,51 @@
 ﻿@using MudBlazorWebApp5.Models
 @inject MudBlazorWebApp5.IService.IAuthorService AuthorService
 
+
 <MudDialog>
     <DialogContent>
-        <div class="d-flex flex-column py-1">
-            <MudForm Model="@author" @ref="@form">
-                <MudCardContent>
-                    <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                    <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                    <MudDatePicker Label="Birth Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" />
-                    <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                    <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                    <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                   
-                    <MudCheckBox @bind-Value="@author.IsActive" For="@(() => author.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>
+       
+            <MudGrid>
+              
+                    <MudItem xs="12" sm="8">
+                        <MudPaper>
+                    <MudForm Model="@author" @ref="@form" @bind-IsValid="@success" @bind-Errors="@errors">
+                                <MudCardContent>
+                                    <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                    <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                    <MudDatePicker @bind-Date="author.BirthDate" Editable="true" Label="Birth of Date" DateFormat="mm/dd/yy" Placeholder="Select Date" />
+                                    @* <MudDatePicker @bind-Date="author.BirthDate" Label="Select Date" Editable="true" Placeholder="Select Date" /> *@
+                            <MudNumericField @bind-Value="author.Age" Label="Age" Variant="Variant.Text" Min="0" Validation="@(new Func<int, IEnumerable<string>>(AgeLimit))" Required="true" />
 
-                </MudCardContent>
+                                    <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                    <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                    <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                    <MudCheckBox @bind-Value="@author.IsActive" For="@(() => author.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>
 
-            </MudForm>
-        </div>
+                                </MudCardContent>
+
+                            </MudForm>
+                        </MudPaper>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Class="pa-4 mud-height-full">
+                            <MudText Typo="Typo.subtitle2">@($"Errors ({errors.Length})")</MudText>
+                            @foreach (var error in errors)
+                            {
+                                <MudText Color="@Color.Error">@error</MudText>
+                            }
+                        </MudPaper>
+                    </MudItem>
+
+               
+            </MudGrid>
+           
+   
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!success)">Create</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -30,6 +53,8 @@
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Inject] ISnackbar Snackbar { get; set; }
     MudForm form;
+    string[] errors = { };
+    bool success;
     Author author = new Author();
     private async Task Submit()
     {
@@ -47,4 +72,34 @@
 
 
     void Cancel() => MudDialog.Cancel();
+
+    private IEnumerable<string> AgeLimit(int age)
+    {
+        if(age <= 15)
+        {
+            yield return "age must be minimum 16!";
+            yield break;
+        }
+    }
 }
+
+
+@* 
+
+<MudCard>
+    <MudForm Model="@author" @ref="@form">
+        <MudCardContent>
+            <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+            <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+            <MudDatePicker Label="Birth of Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" />
+            
+            <MudTextField @bind-Value="author.Age" Label="Enter age" />
+            <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+            <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+            <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+            <MudCheckBox @bind-Value="@author.IsActive" For="@(() => author.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>
+
+        </MudCardContent>
+
+    </MudForm>
+</MudCard> *@

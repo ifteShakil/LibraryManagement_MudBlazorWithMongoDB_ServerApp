@@ -12,7 +12,9 @@
                             <MudCardContent>
                                 <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
                                 <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
-                                <MudDatePicker Label="Birth Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" />
+                                @* <MudDatePicker Label="Birth Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" /> *@
+                                <MudTextField T="DateTime?" Format="yyyy-MM-dd" Label="Birth of Date" Date" @bind-Date="author.BirthDate" InputType="InputType.Date" />
+                                <MudTextField @bind-Value="author.Age" Label="Enter age" />
                                 <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
                                 <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
                                 <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
