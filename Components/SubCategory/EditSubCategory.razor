@@ -1,0 +1,77 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.ISubCategoryService SubCategorySrvice
+@inject MudBlazorWebApp5.IService.ICategoryService CategoryService
+<MudDialog>
+    <DialogContent>
+        <MudCard>
+            <EditForm Model="@subCategory">
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudSelect  Label="Select Category" Variant="Variant.Text" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                           @bind-Value="subCategory.CategoryID" Required="true">
+
+                                    @foreach (var selectItem in Categories)
+                                    {
+                                        <MudSelectItem Value="@selectItem.CategoryId">@selectItem.CategoryName</MudSelectItem>
+                                    }
+                                </MudSelect>
+                                <MudTextField @bind-Value="subCategory.Name" For="@(() => subCategory.Name)" Immediate="true" Label="Sub Category" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudTextField @bind-Value="subCategory.DDCCode" For="@(() => subCategory.DDCCode)" Immediate="true" Label="DDC Code" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudCheckBox @bind-Value="subCategory.IsActive" For="@(() => subCategory.IsActive)" Immediate="true" Label="Is Active" />
+
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton OnClick="Cancel">Cancel</MudButton>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="UpdateSubCategory">Edit</MudButton>
+
+                            </MudCardActions>
+
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudCard>
+    </DialogContent>
+
+</MudDialog>
+
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    [Parameter]
+    public string SubCategoryId { get; set; }
+    SubCategory subCategory = new SubCategory();
+    IEnumerable<Category> Categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        subCategory = await SubCategorySrvice.GetSubCategoryById(SubCategoryId);
+        Categories = await CategoryService.GetCategories();
+    }
+   
+
+    private async Task UpdateSubCategory()
+    {
+
+        try
+        {
+            await SubCategorySrvice.UpdateSubCategory(subCategory);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating Publisher: {ex.Message}");
+        }
+
+        Snackbar.Add("Edit Success!");
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+
+    void Cancel() => MudDialog.Cancel();
+
+}

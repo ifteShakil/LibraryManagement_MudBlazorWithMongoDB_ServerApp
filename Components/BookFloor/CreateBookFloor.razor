@@ -1,0 +1,58 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IBookFloorService BookFloorService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudCard>
+                <MudForm Model="@bookFloor" @ref="@form">
+                    <MudCardContent>
+                        <MudTextField @bind-Value="bookFloor.BookFloorName"
+                                      For="@(() => bookFloor.BookFloorName)"
+                                      Immediate="true"
+                                      Label="Book Floor" />
+
+                        <MudCheckBox @bind-Value="bookFloor.IsActive"
+                                     For="@(() => bookFloor.IsActive)"
+                                     Immediate="true"
+                                     Label="Is Active" />
+
+                    </MudCardContent>
+
+                </MudForm>
+
+            </MudCard>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    MudForm form;
+    BookFloor bookFloor = new BookFloor();
+
+
+
+    private async Task Submit()
+    {
+        await BookFloorService.CreateBookFloor(bookFloor);
+
+
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            Snackbar.Add("Created!");
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+    
+}

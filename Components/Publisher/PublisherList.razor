@@ -1,0 +1,167 @@
+﻿@page "/Publisher"
+
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IPublisherService PublisherService
+@inject IDialogService DialogService
+@inject NavigationManager nav
+@inject ILocalStorageService _localStorage
+
+@if (Publishers != null)
+{
+    <div>
+
+        <MudButton OnClick="@((e) => CreateDialog(topCenter))" Variant="Variant.Filled" Color="Color.Default">Add Publisher</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" Class="ml-1">Export</MudButton>
+    </div>
+
+    <MudTable Items="Publishers" Filter="new Func<Publisher,bool>(FilterFunc1)" Hover="true" SortLabel="Sort By" Elevation="0">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">data List</MudText>
+            <MudSpacer />
+
+            <MudTextField @bind-Value="searchString1" Placeholder="Search name or Company name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>SL No</MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Publisher, object>(x=>x.CompanyName)">Company Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.Name)"> Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.Designation)"> Designation </MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.PhoneNumber)">Phone Number</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.Email)"> Email</MudTableSortLabel></MudTh>
+
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.Address)"> Address</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.ReasonOfCommunication)">Reason Of Communication</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.OtherInfo)"> Other Info</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Publisher, object>(x=>x.Instruction)"> Instruction</MudTableSortLabel></MudTh>
+            
+            <MudTh>Action</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
+                <MudTd DataLabel="Companyname">@context.CompanyName</MudTd>
+                <MudTd DataLabel="name">@context.Name</MudTd>
+                <MudTd DataLabel="designation">@context.Designation</MudTd>
+                <MudTd DataLabel="phoneNumber">@context.PhoneNumber</MudTd>
+                <MudTd DataLabel="email">@context.Email</MudTd>
+                <MudTd DataLabel="address">@context.Address</MudTd>
+                <MudTd DataLabel="reasonOf">@context.ReasonOfCommunication</MudTd>
+                <MudTd DataLabel="other">@context.OtherInfo</MudTd>
+                <MudTd DataLabel="instruction">@context.Instruction</MudTd>
+                <MudTd>
+                    <MudFab OnClick="@((e) => EditDialog(topCenter, context.PublisherId))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+                    <MudFab OnClick="@(() => {DeleteDialog(context.PublisherId);})" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+                </MudTd>
+        </RowTemplate>
+           
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{3, 6}" />
+                <MudSpacer />                
+                @* <MudPagination Rectangular="true" Variant="Variant.Filled" Count="3" Class="my-4" /> *@
+            </PagerContent>
+    </MudTable>
+}
+else
+{
+    nav.NavigateTo("/login");
+}
+
+
+@code{
+    // get token
+    private bool loggedInUser;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loggedInUser = await IsUserLoggedIn();
+            await Task.Delay(1000);
+            StateHasChanged();
+        }
+    }
+    private async Task<bool> IsUserLoggedIn()
+    {
+        // check if there's a token in local storage
+        var token = await _localStorage.GetItemAsync<string>("authToken");
+        return !string.IsNullOrEmpty(token);
+    }
+    
+    private string searchString1 = "";
+    
+    //get list
+    private IEnumerable<Publisher> Publishers = new List<Publisher>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Publishers = (await PublisherService.GetPublishers()).ToList();
+    }
+
+    // BookFloor Serial No
+    public int? GetRowNumber(object element) =>
+        Publishers?.TakeWhile(x => x != element).Count()+1;
+
+
+    // dialog format
+    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true, Position = DialogPosition.TopCenter };
+
+    // Create Publisher Dialog
+
+    private void CreateDialog(DialogOptions options)
+    {
+        //var options = new DialogOptions { CloseOnEscapeKey = true };
+       
+        DialogService.Show<CreatePublisher>("Create Publisher", options);
+    }
+
+    // Edit Publisher Dialog
+    private void EditDialog(DialogOptions options, string id)
+    {
+        var parameters = new DialogParameters<EditPublisher>();
+        parameters.Add(x => x.PublisherId, id );
+        
+        //var options = new DialogOptions { CloseOnEscapeKey = true };
+       DialogService.Show<EditPublisher>("Edit PUblisher",parameters, options  );
+    }
+
+    // Delete Dialog
+    private async void DeleteDialog(string id)
+    {
+        var parameters = new DialogParameters<DeletePublisher>();
+        parameters.Add(x => x.ContentText, "Do you really want to delete these records? This process cannot be undone.");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var res = await DialogService.ShowAsync<DeletePublisher>("Delete", parameters, options);
+        var d = await res.Result;
+        var error = "error";
+        if (!d.Cancelled)
+        {
+            //delete data
+            await PublisherService.DeletePublisher(id);
+        }
+        else
+        {
+            //
+            Console.WriteLine(error);
+        }
+    }
+
+    //Filter
+    private bool FilterFunc1(Publisher element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Publisher element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.CompanyName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

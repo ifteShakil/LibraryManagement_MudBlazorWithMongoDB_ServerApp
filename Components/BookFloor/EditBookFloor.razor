@@ -1,0 +1,61 @@
+﻿@page "/Edit-BookFloor"
+
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IBookFloorService BookFloorService
+
+
+
+<MudDialog>
+    <DialogContent>
+        <MudCard>
+            <EditForm Model="@bookFloor">
+               
+                <MudGrid>
+                    <MudItem xs="12" sm="7">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudTextField Label="Book Floor" HelperText="Max. 8 characters"
+                                              @bind-Value="bookFloor.BookFloorName" For="@(() => bookFloor.BookFloorName)" />
+                                                     
+                                <MudCheckBox @bind-Value="bookFloor.IsActive"
+                                             For="@(() => bookFloor.IsActive)"
+                                             Immediate="true"
+                                             Label="Is Active" />
+                            </MudCardContent>
+                            @* <MudCardActions>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
+                            </MudCardActions> *@
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudCard>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" >Edit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+
+@code {
+
+        [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+
+        [Inject] ISnackbar Snackbar { get; set; }
+
+        BookFloor bookFloor = new BookFloor();
+
+        private async Task Submit(string bookFloorId)
+        {
+            //bookFloor = await BookFloorService.UpdateBookFloor(bookFloor.BookFloorId);
+            Snackbar.Add("Edit Success!");
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+    
+    void Cancel() => MudDialog.Cancel();
+
+}

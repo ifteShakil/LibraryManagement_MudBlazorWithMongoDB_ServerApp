@@ -1,0 +1,59 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IPublisherService PublisherService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudCard>
+                <MudForm Model="@publisher" @ref="@form">
+                    <MudCardContent>
+                        <MudTextField @bind-Value="publisher.CompanyName" For="@(() => publisher.CompanyName)" Immediate="true" Label="Company Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.Name" For="@(() => publisher.Name)" Immediate="true" Label="Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.Designation" For="@(() => publisher.Designation)" Immediate="true" Label="Designation" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.PhoneNumber" For="@(() => publisher.PhoneNumber)" Immediate="true" Label="Phone Number" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.Email" For="@(() => publisher.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.Address" For="@(() => publisher.Address)" Immediate="true" Label="Address" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.ReasonOfCommunication" For="@(() => publisher.ReasonOfCommunication)" Immediate="true" Label="Reason Of Communication" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.OtherInfo" For="@(() => publisher.OtherInfo)" Immediate="true" Label="Other Info" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="publisher.Instruction" For="@(() => publisher.Instruction)" Immediate="true" Label="Instruction" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+
+                        @* <MudCheckBox @bind-Value="@publisher.IsActive" For="@(() => publisher.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>   *@
+
+                    </MudCardContent>
+
+                </MudForm>
+
+            </MudCard>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    MudForm form;
+    Publisher publisher = new Publisher();
+
+
+    private async Task Submit()
+    {
+        await PublisherService.CreatePublisher(publisher);
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            Snackbar.Add("Created!");
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+}

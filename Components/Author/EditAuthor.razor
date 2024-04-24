@@ -1,0 +1,71 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IAuthorService AuthorService
+
+<MudDialog>
+    <DialogContent>
+        <MudCard>
+            <EditForm Model="@author">
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudCard>
+
+                            <MudCardContent>
+                                <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudDatePicker Label="Birth Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" />
+                                <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                                <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+
+                                <MudCheckBox @bind-Value="@author.IsActive" For="@(() => author.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>
+
+                               
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton OnClick="Cancel">Cancel</MudButton>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="UpdateCategory">Edit</MudButton>
+                            </MudCardActions>
+
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudCard>
+    </DialogContent>
+
+</MudDialog>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+
+    [Parameter]
+    public string AuthorId { get; set; }
+
+    Author author = new Author();
+
+    protected override async Task OnInitializedAsync()
+    {
+        author = await AuthorService.GetAuthorById(AuthorId);
+    }
+
+
+    private async Task UpdateCategory()
+    {
+        try
+        {
+            await AuthorService.UpdateAuthor(author);
+            Snackbar.Add("Edit Success!");
+            MudDialog.Close(DialogResult.Ok(true));
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating Category: {ex.Message}");
+        }
+
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

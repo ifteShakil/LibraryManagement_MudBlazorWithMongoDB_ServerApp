@@ -1,0 +1,96 @@
+﻿@page "/login"
+
+@using MudBlazorWebApp5.Account
+@using System.Text.RegularExpressions
+@using MudBlazorWebApp5.Components.Layout
+@inject MudBlazorWebApp5.Account.IUserService UserService
+@inject NavigationManager nav
+@inject ILocalStorageService _localstorage;
+
+<h3>Login User</h3>
+
+
+<MudGrid>
+  <MudItem xs="12" sm="6">
+    <MudPaper Class="pa-4">
+      <MudForm @ref="form" @bind-IsValid="@isValid" @bind-Errors="@errors">
+                <MudTextField T="string" Label="Username" @bind-Value="userName" Required="true" RequiredError="Username is required!" />
+                <MudTextField T="string" Label="Password" @bind-Value="passWord" HelperText="Enter your password" @ref="pwField1"
+                    InputType="InputType.Password" Required="true" RequiredError="Password is required!"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" />
+     
+        <div class="d-flex align-center justify-space-between">
+                    <MudButton OnClick="Login" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!isValid)">Login</MudButton>
+          <MudLink Href="/forgot-password">Forgot Password?</MudLink>
+        </div>
+      </MudForm>
+    </MudPaper>
+  </MudItem>
+  <MudItem xs="12" sm="6">
+    <MudPaper Class="pa-4 mud-height-full">
+      @if (errorMessage != null)
+      {
+        <MudText Color="@Color.Error">@errorMessage</MudText>
+      }
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+
+@code {
+    MudForm form;
+    User login = new User();
+    string errorMessage;
+    bool isValid;
+    MudTextField<string> pwField1;
+    string[] errors = { };
+    [Inject] ISnackbar Snackbar { get; set; }
+
+    public string userName { get; set; }
+    public string passWord { get; set; }
+
+    private async Task Login()
+    {
+        login = await UserService.GetUserNamePassword(userName, passWord);
+        await form.Validate();
+        if (!isValid)
+            return;
+
+        // Simulate login logic
+        if (login.Username == userName || login.Email == userName && login.Password == passWord)
+        {
+            await _localstorage.SetItemAsync("authToken", userName);
+            Snackbar.Add("Login Successfully!");
+            nav.NavigateTo("/", true);          
+            
+        }
+        else
+        {
+            errorMessage = "Invalid username or password";
+        }
+        
+
+    }
+
+
+    // Password constraint
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+        
+    }
+
+   
+}

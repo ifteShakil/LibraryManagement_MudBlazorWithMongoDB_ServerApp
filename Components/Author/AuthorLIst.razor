@@ -1,0 +1,142 @@
+﻿
+@page "/Author"
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IAuthorService AuthorService
+@inject IDialogService DialogService
+@inject NavigationManager nav
+@inject ILocalStorageService _localStorage
+<h3>AuthorLIst</h3>
+
+
+@if (authors != null)
+{
+    <div>
+
+        <MudButton OnClick="@((e) => CreateDialog(topCenter))" Variant="Variant.Filled" Color="Color.Default">Add Author</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" Class="ml-1">Export</MudButton>
+    </div>
+
+    <MudTable Items="authors" Hover="true" SortLabel="Sort By" Elevation="0">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">data List</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1" Placeholder="Search name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+
+        </ToolBarContent>
+      <HeaderContent>
+          <MudTh>SL</MudTh>
+          <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.FirstName)">First Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.LastName)">Last Name </MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.BirthDate)">Birth Date</MudTableSortLabel></MudTh>
+            <MudTh>Biography</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Phone</MudTh>
+            <MudTh>IsActive</MudTh>
+            <MudTh>Action</MudTh>
+
+      </HeaderContent>
+
+      <RowTemplate>
+            <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
+            <MudTd DataLabel="Companyname">@context.FirstName</MudTd>
+                <MudTd DataLabel="Companyname">@context.LastName</MudTd>
+                <MudTd DataLabel="Companyname">@context.BirthDate</MudTd>
+            <MudTd DataLabel="Companyname">@context.Biography</MudTd>
+            <MudTd DataLabel="Companyname">@context.Email</MudTd>
+            <MudTd DataLabel="Companyname">@context.Phone</MudTd>
+                <MudTd DataLabel="Companyname">@context.IsActive</MudTd>
+        
+            <MudTd DataLabel="">
+                    <MudFab OnClick="@((e) => EditDialog(topCenter, context.AuthorId))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+                    <MudFab OnClick="@(_ => {DeleteDialog(context.AuthorId);})" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+
+                </MudTd>
+
+      </RowTemplate>
+      
+
+    </MudTable>
+}
+else
+{
+    nav.NavigateTo("/login");
+}
+
+
+@code {
+    //get token
+    private bool loggedInUser;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loggedInUser = await IsUserLoggedIn();
+            await Task.Delay(1000);
+            StateHasChanged();
+        }
+    }
+    private async Task<bool> IsUserLoggedIn()
+    {
+     
+        var token = await _localStorage.GetItemAsync<string>("authToken");
+        return !string.IsNullOrEmpty(token);
+    }
+
+    //
+    private string searchString1 = "";
+
+    //Get Authors
+    private IEnumerable<Author> authors = new List<Author>();
+    protected override async Task OnInitializedAsync()
+    {
+       
+        authors = (await AuthorService.GetAuthors()).ToList();
+    }
+
+    // Delete Dialog
+    private async void DeleteDialog(string id)
+    {
+        var parameters = new DialogParameters<DeleteAuthor>();
+        parameters.Add(x => x.ContentText, "Do you really want to delete these records? This process cannot be undone.");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Medium };
+
+        var res = await DialogService.ShowAsync<DeleteAuthor>("Delete", parameters, options);
+        var d = await res.Result;
+        var error = "error";
+        if (!d.Cancelled)
+        {
+            //delete data
+            await AuthorService.DeleteAuthor(id);
+        }
+        else
+        {
+            //
+            Console.WriteLine(error);
+        }
+    }
+    // serial no
+    public int? GetRowNumber(object element) => authors?.TakeWhile(x => x != element).Count() + 1;
+
+    // dialog format
+    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, Position = DialogPosition.TopCenter };
+
+
+    private void CreateDialog(DialogOptions options)
+    {
+        //var options = new DialogOptions { CloseOnEscapeKey = true };
+
+        DialogService.Show<CreateAuthor>("Create Author", options);
+    }
+
+    // Edit Publisher Dialog
+    private void EditDialog(DialogOptions options, string id)
+    {
+        var parameters = new DialogParameters<EditAuthor>();
+        parameters.Add(x => x.AuthorId, id);
+
+        DialogService.Show<EditAuthor>("Edit Author", parameters, options);
+    }
+}

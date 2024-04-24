@@ -1,0 +1,50 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IAuthorService AuthorService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm Model="@author" @ref="@form">
+                <MudCardContent>
+                    <MudTextField @bind-Value="author.FirstName" For="@(() => author.FirstName)" Immediate="true" Label="First Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="author.LastName" For="@(() => author.LastName)" Immediate="true" Label="Last Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudDatePicker Label="Birth Date" @bind-Date="author.BirthDate" Editable="true" Placeholder="Select Date" />
+                    <MudTextField @bind-Value="author.Biography" For="@(() => author.Biography)" Immediate="true" Label="Biography" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="author.Email" For="@(() => author.Email)" Immediate="true" Label="Email" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                    <MudTextField @bind-Value="author.Phone" For="@(() => author.Phone)" Immediate="true" Label="Phone" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                   
+                    <MudCheckBox @bind-Value="@author.IsActive" For="@(() => author.IsActive)" Immediate="true" Label="Is Active"></MudCheckBox>
+
+                </MudCardContent>
+
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    MudForm form;
+    Author author = new Author();
+    private async Task Submit()
+    {
+
+        await AuthorService.CreateAuthor(author);
+
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            Snackbar.Add("Created!");
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+
+    void Cancel() => MudDialog.Cancel();
+}

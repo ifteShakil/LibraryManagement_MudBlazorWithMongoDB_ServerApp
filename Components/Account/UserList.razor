@@ -1,0 +1,62 @@
+﻿@page "/userlist"
+@using MudBlazorWebApp5.Account
+@inject MudBlazorWebApp5.Account.IUserService UserService
+
+
+<h3>UserList</h3>
+
+@if (users == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="users" Hover="true" SortLabel="Sort By" Elevation="0">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">data List</MudText>
+            <MudSpacer />
+
+            @* <MudTextField @bind-Value="searchString1" Placeholder="Search name or Company name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
+
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>SL No</MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<User, object>(x=>x.Username)">User Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<User, object>(x=>x.Email)"> Email</MudTableSortLabel></MudTh>
+            <MudTh> Password </MudTh>      
+            <MudTh>Action</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
+                <MudTd DataLabel="Companyname">@context.Username</MudTd>
+                <MudTd DataLabel="name">@context.Email</MudTd>
+                <MudTd DataLabel="designation">@context.Password</MudTd>
+                
+               @*  <MudTd>
+                    <MudFab OnClick="@((e) => EditDialog(topCenter, context.PublisherId))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+                    <MudFab OnClick="@(() => {DeleteDialog(context.PublisherId);})" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+                </MudTd> *@
+
+            </RowTemplate>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{3, 6}" />
+                <MudSpacer />
+                @* <MudPagination Rectangular="true" Variant="Variant.Filled" Count="3" Class="my-4" /> *@
+            </PagerContent>
+        </MudTable>
+}
+@code {
+    private IEnumerable<User> users = new List<User>();
+    protected override async Task OnInitializedAsync()
+    {
+        users = (await UserService.GetUsers()).ToList();
+    }
+
+    // BookFloor Serial No
+    public int? GetRowNumber(object element) =>
+        users?.TakeWhile(x => x != element).Count() + 1;
+
+}

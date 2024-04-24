@@ -1,0 +1,105 @@
+﻿@inherits LayoutComponentBase
+
+@using MudBlazorWebApp5.Components
+@using MudBlazorWebApp5.Components.Account
+
+@inject NavigationManager nav
+@inject ILocalStorageService _localStorage
+
+<MyMudThemeProvider />
+<MyMudProviders />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+		<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor/" Target="_blank" />
+        
+        <MudMenu FullWidth="true">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary">
+                    @if (loggedInUser)
+                    {
+                        <p>Welcome @UserName!</p>
+                    }
+                    else
+                    {
+                       
+                        <p>Account</p>
+                        
+                    }
+
+                </MudButton>
+            </ActivatorContent>
+            <ChildContent>
+                @if (loggedInUser)
+                {
+                    <MudMenuItem Href="profile">Profile</MudMenuItem>
+                    <MudMenuItem>My account</MudMenuItem>
+                    <MudMenuItem @onclick="Logout">Logout</MudMenuItem>
+
+                }
+                else
+                {
+                    <MudMenuItem Href="signup">Sign Up</MudMenuItem>
+                    <MudMenuItem Href="login">Login</MudMenuItem>
+                }
+
+            </ChildContent>
+        </MudMenu>
+    
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">MudBlazor with MongoDB</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-16 pt-16">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private string UserName = "";
+    private bool loggedInUser;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loggedInUser = await IsUserLoggedIn();
+            UserName = await _localStorage.GetItemAsync<string>("authToken");
+            await Task.Delay(1000);
+            StateHasChanged();
+        }
+    }
+
+
+    private async Task<bool> IsUserLoggedIn()
+    {
+        // check if there's a token in local storage
+        var token = await _localStorage.GetItemAsync<string>("authToken");
+        return !string.IsNullOrEmpty(token);
+    }
+
+    //log out method
+    private async Task Logout()
+    {
+        await _localStorage.RemoveItemAsync("authToken");
+        loggedInUser = false;
+
+        nav.NavigateTo("/login");
+    }
+    
+}

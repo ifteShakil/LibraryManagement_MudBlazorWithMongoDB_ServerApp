@@ -1,0 +1,52 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudCard>
+                <MudForm Model="@Category" @ref="@form">
+                    <MudCardContent>
+                        <MudTextField @bind-Value="Category.CategoryName" For="@(() => Category.CategoryName)" Immediate="true" Label="Category Name" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                        <MudTextField @bind-Value="Category.DDCCode" For="@(() => Category.DDCCode)" Immediate="true" Label="DDC Code" Variant="Variant.Text" Margin="Margin.Dense"></MudTextField>
+                       
+                        <MudCheckBox @bind-Value="Category.IsActive"
+                                     For="@(() => Category.IsActive)"
+                                     Immediate="true"
+                                     Label="Is Active" />                       
+                    </MudCardContent>
+                </MudForm>
+            </MudCard>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="Submit">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    MudForm form;
+    Category Category = new Category();
+
+
+    private async Task Submit()
+    {
+        await CategoryService.CreateCategory(Category);
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            Snackbar.Add("Created!");
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+}

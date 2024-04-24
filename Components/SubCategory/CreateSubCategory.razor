@@ -1,0 +1,74 @@
+﻿@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.ICategoryService CategoryService
+@inject MudBlazorWebApp5.IService.ISubCategoryService SubCategoryService
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudCard>
+                <MudForm Model="@SubCategory" @ref="@form">
+                    <MudCardContent>
+                        <MudSelect Label="Select Category" Variant="Variant.Text" Margin="Margin.Dense" AnchorOrigin="Origin.BottomCenter"
+                                   @bind-Value="SubCategory.CategoryID" Required="true">
+                            
+                            @foreach (var selectItem in Categories)
+                            {
+                                <MudSelectItem Value="@selectItem.CategoryId">@selectItem.CategoryName</MudSelectItem>
+                            }
+                        </MudSelect>
+                     
+                            <MudTextField @bind-Value="SubCategory.Name" For="@(() => SubCategory.Name)" Immediate="true"
+                                      Label="Add Sub Category" Variant="Variant.Text" Margin="Margin.Dense" 
+                                      disabled="@(string.IsNullOrEmpty(SubCategory.CategoryID))"></MudTextField>
+
+                            <MudTextField @bind-Value="SubCategory.DDCCode" For="@(() => SubCategory.DDCCode)" Immediate="true"
+                                          Label="DDC Code" Variant="Variant.Text" Margin="Margin.Dense"
+                                      disabled="@(string.IsNullOrEmpty(SubCategory.CategoryID))"></MudTextField>
+
+                            <MudCheckBox @bind-Value="SubCategory.IsActive"
+                                         For="@(() => SubCategory.IsActive)"
+                                         Immediate="true"
+                                         Label="Is Active"
+                                     disabled="@(string.IsNullOrEmpty(SubCategory.CategoryID))" />
+ 
+                    </MudCardContent>
+                </MudForm>
+            </MudCard>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" OnClick="Create">Create</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+    MudForm form;
+    SubCategory SubCategory = new SubCategory();
+    IEnumerable<Category> Categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await CategoryService.GetCategories();
+    }
+
+    private async Task Create()
+    {
+        //SubCategory.CategoryName = null;
+        await SubCategoryService.CreateSubCategory(SubCategory);
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            Snackbar.Add("Created!");
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+}

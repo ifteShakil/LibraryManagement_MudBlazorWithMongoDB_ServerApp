@@ -1,0 +1,134 @@
+﻿@page "/Sub-Category"
+
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.ISubCategoryService SubCategoryService
+@inject IDialogService DialogService
+@inject NavigationManager nav
+@inject ILocalStorageService _localStorage
+
+
+@if (SubCategories != null)
+{
+    <div>
+
+        <MudButton OnClick="@((e) => CreateDialog(topCenter))" Variant="Variant.Filled" Color="Color.Default">Add Sub Category</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" Class="ml-1">Export</MudButton>
+    </div>
+
+    <MudTable Items="SubCategories" Filter="new Func<SubCategory,bool>(FilterFunc1)" Hover="true" SortLabel="Sort By" Elevation="0">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">data List</MudText>
+            <MudSpacer />
+
+            <MudTextField @bind-Value="searchString1" Placeholder="Search name or Company name" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>SL No</MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SubCategory , object>(x=>x.Name)">Sub Category </MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<SubCategory, object>(x=>x.DDCCode)"> DDC Code</MudTableSortLabel></MudTh>
+            <MudTh>IsActive</MudTh>
+
+            <MudTh>Action</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
+                <MudTd DataLabel="SubCategory">@context.Name</MudTd>
+                <MudTd DataLabel="DDCCode">@context.DDCCode</MudTd>
+                <MudTd DataLabel="is Active">@context.IsActive</MudTd>
+                
+                <MudTd>
+                    <MudFab OnClick="@((e) => EditDialog(topCenter, context.SubcategoryId))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+                    <MudFab OnClick="@(() => {DeleteDialog(context.SubcategoryId);})" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+                </MudTd>
+            </RowTemplate>
+
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{3, 6}" />
+                <MudSpacer />
+                @* <MudPagination Rectangular="true" Variant="Variant.Filled" Count="3" Class="my-4" /> *@
+            </PagerContent>
+        </MudTable>
+}
+else
+{
+    nav.NavigateTo("/login");
+}
+
+
+@code {
+
+    private string searchString1 = "";
+    //get list
+    private IEnumerable<SubCategory> SubCategories = new List<SubCategory>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SubCategories = (await SubCategoryService.GetSubCategories()).ToList();
+    }
+
+    // BookFloor Serial No
+    public int? GetRowNumber(object element) =>
+        SubCategories?.TakeWhile(x => x != element).Count() + 1;
+
+    //Filter
+    private bool FilterFunc1(SubCategory element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(SubCategory element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.DDCCode.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    // dialog format
+    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true, Position = DialogPosition.TopCenter };
+
+    // Create SubCategory Dialog
+
+    private void CreateDialog(DialogOptions options)
+    {
+        DialogService.Show<CreateSubCategory>("Create Sub Category", options);
+    }
+
+
+    // Edit Publisher Dialog
+    private void EditDialog(DialogOptions options, string id)
+    {
+        var parameters = new DialogParameters<EditSubCategory>();
+        parameters.Add(x => x.SubCategoryId, id);
+
+        //var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<EditSubCategory>("Edit Sub Category", parameters, options);
+    }
+    // Delete Dialog
+    private async void DeleteDialog(string id)
+    {
+        var parameters = new DialogParameters<DeleteSubCategory>();
+        parameters.Add(x => x.ContentText, "Do you really want to delete these records? This process cannot be undone.");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var res = await DialogService.ShowAsync<DeleteSubCategory>("Delete", parameters, options);
+        var d = await res.Result;
+        var error = "error";
+        if (!d.Cancelled)
+        {
+            //delete data
+            await SubCategoryService.DeleteSubCategory(id);
+        }
+        else
+        {
+            //
+            Console.WriteLine(error);
+        }
+    }
+}

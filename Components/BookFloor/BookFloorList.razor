@@ -1,0 +1,112 @@
+﻿@page "/BookFloor"
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.IBookFloorService BookFloorService
+@inject IDialogService DialogService
+@inject NavigationManager nav
+@inject ILocalStorageService _localStorage
+
+
+@if (BookFloors != null)
+{
+    <h3>BookFloorList</h3>
+    <MudTable Items="BookFloors" Hover="true" SortLabel="Sort By" Elevation="0">
+         <ToolBarContent>
+
+            <MudFab OnClick="@((e) => CreateDialog(topCenter))" Color="Color.Primary" Class="ml-5" IconSize="Size.Medium" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" />
+         </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>SL No</MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<BookFloor, object>(x=>x.BookFloorName)">Book Floor Name</MudTableSortLabel></MudTh>
+            <MudTh>IsActive</MudTh>
+            <MudTh>Action</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
+            <MudTd DataLabel="name">@context.BookFloorName</MudTd>
+                <MudTd DataLabel="is Active">@context.IsActive</MudTd>
+                <MudTd>
+                    <MudFab Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+                    <MudFab @onclick="@(() => {DeleteDialog(context.BookFloorId);})" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+                </MudTd>
+
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new int[]{3, 6}" />
+            </PagerContent>
+        </MudTable>
+}
+else
+{
+    nav.NavigateTo("/login");
+    //<MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+
+
+@code {
+
+    // get token
+    [Parameter]
+    public bool loggedInUser { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            loggedInUser = await IsUserLoggedIn();
+            StateHasChanged();
+        }
+    }
+    private async Task<bool> IsUserLoggedIn()
+    {
+        // check if there's a token in local storage
+        var token = await _localStorage.GetItemAsync<string>("authToken");
+        return !string.IsNullOrEmpty(token);
+    }
+    // get book list
+    private IEnumerable<BookFloor> BookFloors = new List<BookFloor>();
+    protected override async Task OnInitializedAsync()
+    {
+        //await Task.Delay(500);
+        BookFloors = (await BookFloorService.GetBookFloors()).ToList();
+
+    }
+    // BookFloor Serial No
+    public int? GetRowNumber(object element) =>
+        BookFloors?.TakeWhile(x => x != element).Count()+1;
+
+    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, Position = DialogPosition.TopCenter };
+
+    // Create Book Floor Dialog
+    private void CreateDialog(DialogOptions options)
+    {
+        DialogService.Show<CreateBookFloor>("Create Book Floor", options);
+    }
+
+    // Delete Dialog
+    private async void DeleteDialog(string id)
+    {
+        var parameters = new DialogParameters<DeleteBookFloor>();
+        parameters.Add(x => x.ContentText, "Do you really want to delete these records? This process cannot be undone.");
+        parameters.Add(x => x.ButtonText, "Delete");
+        parameters.Add(x => x.Color, Color.Error);
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var res = await DialogService.ShowAsync<DeleteBookFloor>("Delete", parameters, options);
+        var d = await res.Result;
+
+        if (!d.Cancelled)
+        {
+            //delete data
+            await BookFloorService.DeleteBookFloor(id);
+        }
+        else
+        {
+            //
+            
+        }
+
+    }
+}

@@ -1,0 +1,51 @@
+﻿
+@using MudBlazorWebApp5.Components.Account
+@inject NavigationManager navManager
+@inject ILocalStorageService _localStorage
+
+<MudNavMenu>
+    
+     @if (!userLoggedIn)
+     {
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+     }
+     else
+     {
+        @* <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add" Disabled="@(!userLoggedIn)">Counter</MudNavLink> *@
+        @* <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink> *@
+        <MudNavLink Href="/BookFloor" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ArtTrack">Book Floor</MudNavLink>
+        <MudNavLink Href="Publisher" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Man2" Disabled="@(!userLoggedIn)">Publisher</MudNavLink>
+        <MudNavLink Href="Author" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Man4" Disabled="@(!userLoggedIn)">Author</MudNavLink>
+        <MudNavLink Href="/Category" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ArtTrack">Category</MudNavLink>
+        <MudNavLink Href="/Sub-Category" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ArtTrack">Sub-Category</MudNavLink>
+
+     }
+</MudNavMenu>
+
+
+
+
+
+@code{
+    private bool userLoggedIn;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (firstRender)
+        {
+            userLoggedIn = await IsUserLoggedIn();
+            StateHasChanged();
+
+        }
+    }
+    private async Task<bool> IsUserLoggedIn()
+    {
+        // Implement your logic to check if the user is logged in
+        // For example, check if there's a token in local storage
+
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            return !string.IsNullOrEmpty(token);  
+    }
+
+}

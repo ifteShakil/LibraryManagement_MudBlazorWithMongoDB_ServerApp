@@ -1,0 +1,71 @@
+﻿@page "/Edit-Catetory"
+
+@using MudBlazorWebApp5.Models
+@inject MudBlazorWebApp5.IService.ICategoryService CategoryService
+
+<MudDialog>
+    <DialogContent>
+        <MudCard>
+            <EditForm Model="@category" >
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudCard>
+
+                            <MudCardContent>
+                                <MudTextField Label="Category Name" 
+                                    @bind-Value="category.CategoryName" For="@(() => category.CategoryName)" Immediate="true" Variant="Variant.Text" Margin="Margin.Dense" />
+                                <MudTextField Label="DDC Code"
+                                    @bind-Value="category.DDCCode" For="@(() => category.DDCCode)" Immediate="true" Variant="Variant.Text" Margin="Margin.Dense" />
+
+                                <MudCheckBox @bind-Value="category.IsActive" For="@(() => category.IsActive)" Immediate="true" Label="Is Active" />
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton OnClick="Cancel">Cancel</MudButton>
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" @onclick="UpdateCategory">Edit</MudButton>
+                            </MudCardActions>
+
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </EditForm>
+        </MudCard>
+    </DialogContent>
+
+</MudDialog>        
+
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
+
+    [Parameter]
+    public string CategoryId { get; set; }
+
+    Category category = new Category();
+
+    protected override async Task OnInitializedAsync()
+    {
+        category = await CategoryService.GetCategoryById(CategoryId);
+    }
+
+
+    private async Task UpdateCategory()
+    {
+        try
+        {
+            await CategoryService.UpdateCategory(category);
+            Snackbar.Add("Edit Success!");
+            MudDialog.Close(DialogResult.Ok(true));
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating Category: {ex.Message}");
+        }
+       
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+}
