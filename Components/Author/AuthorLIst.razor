@@ -12,7 +12,7 @@
 {
     <div>
 
-        <MudButton OnClick="@((e) => CreateDialog(topCenter))" Variant="Variant.Filled" Color="Color.Default">Add Author</MudButton>
+        <MudButton OnClick="@((e) => CreateDialog(topCenter))" Variant="Variant.Filled" Color="Color.Success">Add Author</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Default" Class="ml-1">Export</MudButton>
     </div>
 
@@ -28,6 +28,7 @@
           <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.FirstName)">First Name</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.LastName)">Last Name </MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.BirthDate)">Birth Date</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Author, object>(x => x.Age)">Age</MudTableSortLabel></MudTh>
             <MudTh>Biography</MudTh>
             <MudTh>Email</MudTh>
             <MudTh>Phone</MudTh>
@@ -38,13 +39,14 @@
 
       <RowTemplate>
             <MudTd DataLabel="serial">@GetRowNumber(context)</MudTd>
-            <MudTd DataLabel="Companyname">@context.FirstName</MudTd>
-                <MudTd DataLabel="Companyname">@context.LastName</MudTd>
-                <MudTd DataLabel="Companyname">@context.BirthDate</MudTd>
-            <MudTd DataLabel="Companyname">@context.Biography</MudTd>
-            <MudTd DataLabel="Companyname">@context.Email</MudTd>
-            <MudTd DataLabel="Companyname">@context.Phone</MudTd>
-                <MudTd DataLabel="Companyname">@context.IsActive</MudTd>
+                <MudTd DataLabel="FirstName">@context.FirstName</MudTd>
+                <MudTd DataLabel="LastName">@context.LastName</MudTd>
+                <MudTd DataLabel="BirthDate">@context.BirthDate</MudTd>
+                <MudTd DataLabel="Age">@context.Age</MudTd>
+                <MudTd DataLabel="Biography">@context.Biography</MudTd>
+                <MudTd DataLabel="Email">@context.Email</MudTd>
+                <MudTd DataLabel="Phone">@context.Phone</MudTd>
+                <MudTd DataLabel="IsActive">@context.IsActive</MudTd>
         
             <MudTd DataLabel="">
                     <MudFab OnClick="@((e) => EditDialog(topCenter, context.AuthorId))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
@@ -89,8 +91,29 @@ else
     private IEnumerable<Author> authors = new List<Author>();
     protected override async Task OnInitializedAsync()
     {
-       
         authors = (await AuthorService.GetAuthors()).ToList();
+    }
+
+    
+    // serial no
+    public int? GetRowNumber(object element) => authors?.TakeWhile(x => x != element).Count() + 1;
+
+    // dialog format
+    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, Position = DialogPosition.TopCenter };
+    
+    //Create Dialog
+    private void CreateDialog(DialogOptions options)
+    {
+        DialogService.Show<CreateAuthor>("Create Author", options);
+    }
+
+    // Edit Publisher Dialog
+    private void EditDialog(DialogOptions options, string id)
+    {
+        var parameters = new DialogParameters<EditAuthor>();
+        parameters.Add(x => x.AuthorId, id);
+
+        DialogService.Show<EditAuthor>("Edit Author", parameters, options);
     }
 
     // Delete Dialog
@@ -113,30 +136,8 @@ else
         }
         else
         {
-            //
+            //error message
             Console.WriteLine(error);
         }
-    }
-    // serial no
-    public int? GetRowNumber(object element) => authors?.TakeWhile(x => x != element).Count() + 1;
-
-    // dialog format
-    DialogOptions topCenter = new DialogOptions() { MaxWidth = MaxWidth.Small, FullWidth = true, Position = DialogPosition.TopCenter };
-
-
-    private void CreateDialog(DialogOptions options)
-    {
-        //var options = new DialogOptions { CloseOnEscapeKey = true };
-
-        DialogService.Show<CreateAuthor>("Create Author", options);
-    }
-
-    // Edit Publisher Dialog
-    private void EditDialog(DialogOptions options, string id)
-    {
-        var parameters = new DialogParameters<EditAuthor>();
-        parameters.Add(x => x.AuthorId, id);
-
-        DialogService.Show<EditAuthor>("Edit Author", parameters, options);
     }
 }
